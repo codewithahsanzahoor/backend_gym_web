@@ -14,13 +14,22 @@ class UserSerializer(serializers.ModelSerializer):
             'id',
             'username',
             'email',
+            'password',
             'role',
             'phone',
             'profile_picture',
             'date_of_birth',
             'address',
         ]
-        # Password kabhi response mein nahi aayega
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+    def create(self, validated_data):
+        # Password nikaal kar baaki data se user banao
+        password = validated_data.pop('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password) # Ye line password ko hash (encrypt) karti hai
+        instance.save()
+        return instance
