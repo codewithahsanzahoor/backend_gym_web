@@ -1,13 +1,27 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from .models import MembershipPlan
-from .serializers import MembershipPlanSerializer
+from .models import MembershipPlan, Attendance
+from .serializers import MembershipPlanSerializer, AttendanceSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from accounts.models import CustomUser
-from .models import MembershipPlan, Attendance
 from django.utils import timezone
+
+class AttendanceList(generics.ListCreateAPIView):
+    queryset = Attendance.objects.all().order_by('-date', '-check_in_time')
+    serializer_class = AttendanceSerializer
+    permission_classes = [AllowAny]
+
+class MyAttendanceList(generics.ListAPIView):
+    serializer_class = AttendanceSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            return Attendance.objects.filter(user_id=user_id).order_by('-date')
+        return Attendance.objects.none()
 
 class DashboardStats(APIView):
     permission_classes = [AllowAny] # Abhi ke liye AllowAny rakhte hain, baad mein secure karenge
